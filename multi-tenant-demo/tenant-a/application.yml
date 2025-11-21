@@ -1,0 +1,7 @@
+tenant:
+  name: "Hospital A"
+  theme: "blue"
+  db:
+    # ※ハンズオンではこのDB設定は使いませんが、
+    # 将来的な拡張のためにダミーを入れておきます
+    url: "jdbc:postgresql://db-a.example.com:5432/hospital_db"

@@ -1,0 +1,5 @@
+tenant:
+  name: "Clinic C"
+  theme: "red"
+  db:
+    url: "jdbc:postgresql://db-c.example.com:5432/clinic_db"
