@@ -129,6 +129,20 @@
             border-top: 1px solid #eee;
             padding-top: 2rem;
         }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .copy-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -185,22 +199,32 @@
 <div class="section-box">
     <h2>0. 事前準備と変数設定</h2>
     <div class="warning">
-        <strong>重要:</strong> この手順書では環境変数を活用してコマンドを簡略化しています。最初に以下の変数を必ず設定してください。
+        <strong>重要:</strong> この手順書では環境変数を活用してコマンドを簡略化しています。ターミナルを開き、順番に実行してください。
     </div>
     
-    <h3>1. 変数設定 (★ここだけ書き換えて実行★)</h3>
+    <h3>1. 変数設定</h3>
+    <p>ハンズオンで使用する環境変数を設定します。そのままコピーして実行してください。</p>
     <pre>
 # 1. 現在のプロジェクト名を自動取得
 export MY_PROJECT=$(oc project -q)
 
-# 2. GitリポジトリのURL (★ここをご自身のリポジトリに書き換えてください★)
-export GIT_REPO="https://github.com/&lt;YOUR_ID&gt;/multi-tenant-demo.git"
+# 2. GitリポジトリのURLを設定 (固定値)
+export GIT_REPO="https://github.com/Tatsuyak9i/openshift-handson-guide.git"
 
 # 確認
 echo "Project: $MY_PROJECT"
 echo "Repo   : $GIT_REPO"</pre>
 
-    <h3>2. 環境クリーニング</h3>
+    <h3>2. 資材のダウンロード (WARファイル)</h3>
+    <p>アプリケーションの元となるWARファイルを、リポジトリから現在の環境にダウンロードします。</p>
+    <pre>
+# curlコマンドでダウンロード (-Lはリダイレクト追跡オプション)
+curl -L -o ROOT.war https://raw.githubusercontent.com/Tatsuyak9i/openshift-handson-guide/main/ROOT.war
+
+# 確認 (ファイルが存在すること)
+ls -l ROOT.war</pre>
+
+    <h3>3. 環境クリーニング</h3>
     <p>開始前にプロジェクト内を空にします。</p>
     <pre>oc delete all,configmap,pvc,secret,is,bc,sa,role,rolebinding --all</pre>
 </div>
@@ -514,7 +538,7 @@ EOF
 oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":false}}'
 oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":true}}'</pre>
     
-    <h4>4-3. [追加] 資材配置ジョブ (Job + oc cp/exec)</h4>
+    <h4>4-3. 資材配置ジョブ (Job + oc cp/exec)</h4>
     <p>単発のJobが起動し、ターゲットPod内にファイルを転送・配置します。</p>
     <pre>
 # 資材配置用Job作成
@@ -622,6 +646,22 @@ done</pre>
 <footer>
     <p>© 2024 OpenShift Modernization Workshop</p>
 </footer>
+
+<script>
+    document.querySelectorAll('pre').forEach(pre => {
+        const button = document.createElement('button');
+        button.className = 'copy-btn';
+        button.textContent = 'Copy';
+        button.addEventListener('click', () => {
+            const code = pre.textContent.replace('Terminal', '').trim();
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => button.textContent = 'Copy', 2000);
+            });
+        });
+        pre.appendChild(button);
+    });
+</script>
 
 </body>
 </html>
