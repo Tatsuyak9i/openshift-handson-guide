@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenShift 移行・運用改善ワークショップ (Final Version)</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        header {
+            background: linear-gradient(135deg, #0d47a1, #1976d2);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 2.2rem; font-weight: 700; }
+        h1 + p { font-size: 1.1rem; opacity: 0.9; font-weight: 300; }
+        h2 {
+            border-left: 6px solid #1565c0;
+            padding-left: 15px;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: #333;
+            background: #fff;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+        h3 {
+            margin-top: 2rem;
+            color: #555;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+        h4 { margin-top: 1.5rem; color: #666; font-weight: 600; }
+        .section-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        code {
+            background-color: #f0f0f0;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            color: #d63384;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #212529;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            position: relative;
+            margin: 15px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        pre::before {
+            content: "Terminal";
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #444;
+            color: #ccc;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-bottom-left-radius: 8px;
+            font-weight: bold;
+        }
+        .note, .warning {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 6px solid;
+        }
+        .note {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
+            color: #0d47a1;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .mermaid {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+        }
+        .figure-caption {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            margin-top: -20px;
+            margin-bottom: 30px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: #888;
+            font-size: 0.9rem;
+            padding-bottom: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>OpenShift 移行・運用改善ワークショップ</h1>
+    <p>Lift & Shift (第一歩) から Cloud-Native (大規模化) へ</p>
+</header>
+
+<div class="section-box">
+    <h2>ワークショップ概要</h2>
+    <ul>
+        <li><strong>対象環境:</strong> OpenShift Developer Sandbox (または任意の単一プロジェクト環境)</li>
+        <li><strong>所要時間:</strong> 90分 ～ 120分</li>
+        <li><strong>主な体験:</strong>
+            <ul>
+                <li><b>Part 1 (Liftへの第一歩):</b> シンプルな手動構成でOpenShift上で動かす仕組みを理解する。</li>
+                <li><b>Part 2 (大規模化):</b> チェーンビルドとラベル運用で、多数の環境を効率的に管理する。</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="mermaid">
+    graph TD
+        %% Part 1: 上段
+        subgraph Step1["Part 1: Liftへの第一歩 (手動構成)"]
+            direction TB
+            User1((担当者)) --"1. 手動WAR転送"--> Pod1[Tomcat Pod]
+            User1 --"2. 設定ファイル作成"--> CM1[ConfigMap]
+            CM1 -.-|3. 手動マウント| Pod1
+            Note1[特徴: シンプルな移行<br>課題: 手間は残る]
+        end
+    
+        %% 移行の矢印
+        Step1 == "次のステージへ (大規模化)" ==> Step2
+    
+        %% Part 2: 下段
+        subgraph Step2["Part 2: 大規模化 (自動化と統制)"]
+            direction TB
+            User2((開発者)) --"1. Git Push"--> Git
+            Git --"2. Webhook"--> BC[Build Config]
+            BC --"3. 自動ビルド"--> Image[Container Image]
+            Image --"4. 自動トリガー"--> Multi[全テナント一斉更新]
+            Note2[特徴: スケーラブル<br>メリット: 運用コスト一定]
+        end
+    
+        %% スタイル定義
+        style Step1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px,stroke-dasharray: 5 5
+        style Step2 fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
+    </div>
+    <p class="figure-caption">図1: 本ワークショップの全体像 (ステップアップの過程)</p>
+</div>
+
+<div class="section-box">
+    <h2>0. 事前準備と変数設定</h2>
+    <div class="warning">
+        <strong>重要:</strong> この手順書では環境変数を活用してコマンドを簡略化しています。最初に以下の変数を必ず設定してください。
+    </div>
+    
+    <h3>1. 変数設定 (★ここだけ書き換えて実行★)</h3>
+    <pre>
+# 1. 現在のプロジェクト名を自動取得
+export MY_PROJECT=$(oc project -q)
+
+# 2. GitリポジトリのURL (★ここをご自身のリポジトリに書き換えてください★)
+export GIT_REPO="https://github.com/&lt;YOUR_ID&gt;/multi-tenant-demo.git"
+
+# 確認
+echo "Project: $MY_PROJECT"
+echo "Repo   : $GIT_REPO"</pre>
+
+    <h3>2. 環境クリーニング</h3>
+    <p>開始前にプロジェクト内を空にします。</p>
+    <pre>oc delete all,configmap,pvc,secret,is,bc,sa,role,rolebinding --all</pre>
+</div>
+
+<div class="section-box">
+    <h2>Part 1: シングルテナント編 (Liftへの第一歩)</h2>
+    <p><strong>テーマ:</strong> WARは変えずに、インフラ側で設定を注入して無理やり動かす。</p>
+    <p><strong>表示グループ:</strong> <code>part1-legacy</code></p>
+
+    <h3>1. インフラ構築 (DB準備)</h3>
+    <pre>
+# 1. PVC (永続ストレージ) 作成
+oc create -f - &lt;&lt;EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-pvc-part1
+  labels:
+    handson: part1
+    app.kubernetes.io/part-of: part1-legacy
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+EOF
+
+# 2. PostgreSQL (Deployment) 作成
+oc new-app --name=postgresql-part1 \
+  --image=registry.redhat.io/rhel8/postgresql-13 \
+  -e POSTGRESQL_USER=dbuser \
+  -e POSTGRESQL_PASSWORD=password \
+  -e POSTGRESQL_DATABASE=sampledb \
+  -l handson=part1,app.kubernetes.io/part-of=part1-legacy
+
+# 3. ストレージのマウント
+oc set volume deployment/postgresql-part1 --add \
+  --name=postgresql-data \
+  --type=pvc \
+  --claim-name=postgresql-pvc-part1 \
+  --mount-path=/var/lib/pgsql/data</pre>
+
+    <h3>2. アプリケーションのデプロイ (WAR手動投入)</h3>
+    <pre>
+# 1. ビルド定義 (Binary Build)
+oc new-build --binary=true \
+  --name=legacy-app \
+  --image-stream=jboss-webserver57-openjdk11-tomcat9-openshift-ubi8:latest \
+  -l handson=part1,app.kubernetes.io/part-of=part1-legacy
+
+# 2. WAR転送 & ビルド開始
+oc start-build legacy-app --from-file=ROOT.war --follow
+
+# 3. アプリ起動 & 公開
+oc new-app legacy-app -l handson=part1,app.kubernetes.io/part-of=part1-legacy
+oc create route edge legacy-app-https --service=legacy-app
+oc label route legacy-app-https handson=part1 app.kubernetes.io/part-of=part1-legacy</pre>
+    
+    <div class="warning">
+        <strong>確認ポイント:</strong> URLにアクセスし、<strong>DBエラー (500 Error)</strong> が出ることを確認してください。「ただ置いただけでは動かない」現実を体験します。
+    </div>
+
+    <h3>3. 設定注入 (リカバリー)</h3>
+    
+    <div class="mermaid">
+    graph TD
+        subgraph Manual["Manual Operation (手動作業)"]
+            WAR[("ROOT.war<br>#40;DB設定なし#41;")]
+            CM_File["context.xml<br>#40;設定ファイル#41;"]
+        end
+    
+        subgraph OCP["OpenShift Project"]
+            subgraph Pod["Pod (Tomcat)"]
+                TR["Tomcat Runtime"]
+                MP["/conf/.../ROOT.xml<br>#40;マウントポイント#41;"]
+            end
+    
+            CM["ConfigMap<br>#40;app-context#41;"]
+            EV["Env Var<br>#40;DB_JNDI#41;"]
+    
+            WAR -.-|1. 手動ビルド＆転送| TR
+            CM_File -->|2. 作成| CM
+            CM ==>|3. マウント| MP
+            EV -->|4. 注入| TR
+        end
+        
+        DB[(PostgreSQL)]
+        TR -->|接続| DB
+    
+        style WAR fill:#f9f9f9,stroke:#333,stroke-dasharray: 5 5
+        style CM fill:#ffecb3,stroke:#ff6f00
+        style EV fill:#ffecb3,stroke:#ff6f00
+        style MP stroke:red,stroke-width:2px,stroke-dasharray: 5 5
+    </div>
+    <p class="figure-caption">図2: レガシーな手動構成と設定注入の仕組み</p>
+
+    <pre>
+# 1. 設定ファイル (context.xml) 作成
+cat &lt;&lt;EOF > context.xml
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;Context&gt;
+  &lt;Resource name="jdbc/postgresql"
+            auth="Container"
+            type="javax.sql.DataSource"
+            maxTotal="20"
+            maxIdle="10"
+            maxWaitMillis="-1"
+            username="dbuser"
+            password="password"
+            driverClassName="org.postgresql.Driver"
+            url="jdbc:postgresql://postgresql-part1:5432/sampledb"/&gt;
+&lt;/Context&gt;
+EOF
+
+# 2. ConfigMap作成
+oc create configmap app-context --from-file=ROOT.xml=context.xml
+oc label configmap app-context handson=part1 app.kubernetes.io/part-of=part1-legacy
+
+# 3. マウント & 環境変数設定
+oc set volume deployment/legacy-app --add \
+  --name=context-volume \
+  --type=configmap \
+  --configmap-name=app-context \
+  --mount-path=/opt/jws-5.7/tomcat/conf/Catalina/localhost/ROOT.xml \
+  --sub-path=ROOT.xml
+
+oc set env deployment/legacy-app DB_JNDI=jdbc/postgresql</pre>
+    
+    <div class="note">
+        <strong>確認ポイント:</strong> Pod再起動後、画面が正常に表示されればPart 1成功です。
+    </div>
+
+    <h3>4. リセット (Part 1 Cleanup)</h3>
+    <pre>oc delete all,configmap,pvc,secret,is,bc,sa,role,rolebinding -l handson=part1</pre>
+</div>
+
+<div class="section-box">
+    <h2>Part 2: マルチテナント編 (大規模化と自動化)</h2>
+    <p><strong>テーマ:</strong> 1つのWARから複数環境を自動生成し、運用を自動化する。</p>
+    <p><strong>管理ラベル:</strong> <code>handson=part2</code></p>
+
+    <h3>0. 準備 (権限周りのセットアップ)</h3>
+    <pre>
+# 1. ServiceAccount作成
+oc create sa maintenance-sa -l handson=part2
+
+# 2. Role作成 (Podへのexec/cp権限)
+# ※ logs, exec に加えて cp のためにも create 権限が必要です
+oc create -f - &lt;&lt;EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-exec-role
+  labels:
+    handson: part2
+spec:
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "pods/log"]
+      verbs: ["get", "list"]
+    - apiGroups: [""]
+      resources: ["pods/exec"]
+      verbs: ["create"]
+EOF
+
+# 3. RoleBinding作成 (変数使用)
+oc create rolebinding maintenance-binding \
+  --role=pod-exec-role \
+  --serviceaccount=${MY_PROJECT}:maintenance-sa \
+  -l handson=part2</pre>
+
+    <h3>1. Base（親）環境の構築</h3>
+    <pre>
+# 1. 親のビルド定義
+oc new-build --binary=true \
+  --name=base-app \
+  --image-stream=jboss-webserver57-openjdk11-tomcat9-openshift-ubi8:latest \
+  -l handson=part2,app.kubernetes.io/part-of=mapsp-core
+
+# 2. WAR転送
+oc start-build base-app --from-file=ROOT.war --follow</pre>
+
+    <h3>2. Tenant（子）環境の構築</h3>
+    <pre>
+# --- Tenant A (A病院) ---
+oc new-build ${GIT_REPO} \
+  --context-dir=tenant-a \
+  --name=tenant-a \
+  -l handson=part2,app.kubernetes.io/part-of=hospital-a-system
+
+oc set triggers bc/tenant-a --from-image=base-app:latest
+
+# アプリ起動 (3つのラベル付与)
+oc new-app tenant-a --name=app-hospital-a \
+  -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=hospital-a-system
+
+oc create route edge app-hospital-a --service=app-hospital-a
+oc label route app-hospital-a handson=part2 app.kubernetes.io/part-of=hospital-a-system
+
+# --- Tenant B (B薬局) ---
+oc new-build ${GIT_REPO} \
+  --context-dir=tenant-b \
+  --name=tenant-b \
+  -l handson=part2,app.kubernetes.io/part-of=pharmacy-b-system
+
+oc set triggers bc/tenant-b --from-image=base-app:latest
+
+# アプリ起動 (3つのラベル付与)
+oc new-app tenant-b --name=app-pharmacy-b \
+  -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=pharmacy-b-system
+
+oc create route edge app-pharmacy-b --service=app-pharmacy-b
+oc label route app-pharmacy-b handson=part2 app.kubernetes.io/part-of=pharmacy-b-system</pre>
+
+    <h3>3. 一斉更新デモ (Chain Reaction)</h3>
+    
+    <div class="mermaid">
+    graph LR
+        subgraph Day2["Day 2 Operation (運用トリガー)"]
+            NewWAR[("New WAR File #40;v2#41;<br>アプリ本体のみ")]
+        end
+    
+        subgraph OCP["OpenShift Chained Builds"]
+            direction TB
+            BaseBC[Base Build]
+            BaseIS[("Base Image<br>:latest")]
+    
+            subgraph Triggers["Automatic Triggers (自動検知)"]
+                TenantA_BC["Tenant A Build<br>#40;+Config A#41;"]
+                TenantB_BC["Tenant B Build<br>#40;+Config B#41;"]
+                TenantC_BC["Tenant C Build<br>#40;+Config C#41;"]
+            end
+        end
+    
+        subgraph Deploy["Deployments (自動更新)"]
+            DepA["App Hospital A<br>#40;v2#41;"]
+            DepB["App Pharmacy B<br>#40;v2#41;"]
+            DepC["App Clinic C<br>#40;v2#41;"]
+        end
+    
+        NewWAR -->|1. 手動ビルド実行| BaseBC
+        BaseBC --> BaseIS
+        BaseIS ==>|2. 自動トリガー発火| TenantA_BC
+        BaseIS ==>|2. 自動トリガー発火| TenantB_BC
+        BaseIS ==>|2. 自動トリガー発火| TenantC_BC
+    
+        TenantA_BC --> DepA
+        TenantB_BC --> DepB
+        TenantC_BC --> DepC
+    
+        style BaseIS fill:#b39ddb,stroke:#5e35b1,stroke-width:3px
+        linkStyle 2,3,4 stroke:#ff6f00,stroke-width:2px,color:red
+    </div>
+    <p class="figure-caption">図3: チェーンビルドによる一斉自動更新フロー</p>
+
+    <pre>
+# 1. 親だけを更新 (v2 WARを投入)
+oc start-build base-app --from-file=ROOT_v2.war --follow
+
+# 2. 自動連鎖の観察
+oc get builds -w</pre>
+    <p>親のビルドが完了すると、子ビルドが一斉に開始される様子を確認します。</p>
+
+    <h3>4. Day2運用: ラベル運用と自動化</h3>
+    
+    <h4>4-1. スケール変更 / アプリ停止</h4>
+    <pre>
+# A病院を増強
+oc scale deployment/app-hospital-a --replicas=3
+
+# B薬局を停止
+oc scale deployment/app-pharmacy-b --replicas=0</pre>
+    
+    <h4>4-2. 定期ログチェック (CronJob + oc logs)</h4>
+    <p>CronJobが定期的に起動し、ターゲットPodのログを確認します。</p>
+    <pre>
+# ログ確認用CronJob作成
+oc create -f - &lt;&lt;EOF
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: log-checker-hospital-a
+  labels:
+    handson: part2
+    app.kubernetes.io/part-of: hospital-a-system
+spec:
+  schedule: "*/1 * * * *"
+  suspend: true
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: maintenance-sa
+          containers:
+            - name: checker
+              image: registry.redhat.io/openshift4/ose-cli:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  # A病院のPod名を特定
+                  POD_NAME=\$(oc get pod -l deployment=app-hospital-a -o jsonpath='{.items[0].metadata.name}')
+                  echo "Checking logs for \$POD_NAME..."
+                  # 直近のログを表示
+                  oc logs \$POD_NAME --tail=20
+          restartPolicy: OnFailure
+EOF
+
+# 停止/開始 (ログが流れるのを確認)
+oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":false}}'
+oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":true}}'</pre>
+    
+    <h4>4-3. [追加] 資材配置ジョブ (Job + oc cp/exec)</h4>
+    <p>単発のJobが起動し、ターゲットPod内にファイルを転送・配置します。</p>
+    <pre>
+# 資材配置用Job作成
+oc create -f - &lt;&lt;EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: file-deploy-job-
+  labels:
+    handson: part2
+    app.kubernetes.io/part-of: pharmacy-b-system
+spec:
+  template:
+    spec:
+      serviceAccountName: maintenance-sa
+      containers:
+        - name: deployer
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # 1. ダミーの資材(zip)を作成
+              echo "Dummy config data" > config.txt
+              zip config.zip config.txt
+              
+              # 2. B薬局のPod名を特定
+              POD_NAME=\$(oc get pod -l deployment=app-pharmacy-b -o jsonpath='{.items[0].metadata.name}')
+              echo "Deploying to \$POD_NAME..."
+              
+              # 3. ファイルを転送 (oc cp)
+              oc cp config.zip \$POD_NAME:/tmp/config.zip
+              
+              # 4. 配置確認 (oc exec)
+              oc exec \$POD_NAME -- ls -l /tmp/config.zip
+              echo "Deployment complete."
+      restartPolicy: Never
+EOF
+
+# Jobの実行ログを確認
+oc logs -l job-name=$(oc get job -l handson=part2 --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')</pre>
+
+    <h3>5. Day3運用: テナント追加と一括操作</h3>
+    
+    <div class="mermaid">
+    graph TD
+        subgraph Console["OpenShift Console (Topology View: 見た目のグループ)"]
+            subgraph "part-of: mapsp-core"
+                Base[Base Build / Image]
+            end
+    
+            subgraph "part-of: hospital-a-system"
+                AppA[App Hospital A]
+            end
+    
+            subgraph "part-of: pharmacy-b-system"
+                AppB[App Pharmacy B]
+            end
+            
+            subgraph "part-of: clinic-c-system"
+                AppC[App Clinic C]
+            end
+        end
+    
+        subgraph Ops["Bulk Operation (一括操作コマンド)"]
+            Cmd[/"oc scale deployment ... -l type=tenant-app"/]
+        end
+    
+        %% 操作用ラベルの定義（点線枠）
+        classDef tenantOp fill:none,stroke:#0288d1,stroke-width:3px,stroke-dasharray: 5 5;
+        class AppA,AppB,AppC tenantOp;
+    
+        Cmd =="操作対象 (Selector)"==> AppA
+        Cmd =="操作対象 (Selector)"==> AppB
+        Cmd =="操作対象 (Selector)"==> AppC
+    
+        note[点線枠は共通ラベル 'type=tenant-app' を持つリソースを表す]
+        note -.- AppA
+    </div>
+    <p class="figure-caption">図4: ラベル戦略（見た目の分離と操作の統合）</p>
+
+    <pre>
+# 1. 新規テナント(Cクリニック)追加
+oc new-build ${GIT_REPO} --context-dir=tenant-c --name=tenant-c -l handson=part2,app.kubernetes.io/part-of=clinic-c-system
+oc set triggers bc/tenant-c --from-image=base-app:latest
+
+oc new-app tenant-c --name=app-clinic-c -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=clinic-c-system
+oc create route edge app-clinic-c --service=app-clinic-c
+oc label route app-clinic-c handson=part2 app.kubernetes.io/part-of=clinic-c-system
+
+# 2. 全テナント一括停止 (緊急メンテ)
+oc scale deployment -l type=tenant-app --replicas=0
+
+# 3. 全テナント一括ログ回収
+for pod in $(oc get pods -l type=tenant-app -o jsonpath='{.items[*].metadata.name}'); do
+  oc logs $pod > "${pod}.log"
+done</pre>
+</div>
+
+<div class="section-box">
+    <h2>最終お片付け (Final Cleanup)</h2>
+    <pre>oc delete all,configmap,pvc,secret,is,bc,sa,role,rolebinding -l handson=part2</pre>
+</div>
+
+<footer>
+    <p>© 2024 OpenShift Modernization Workshop</p>
+</footer>
+
+</body>
+</html>
