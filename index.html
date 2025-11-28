@@ -370,7 +370,7 @@ oc set env deployment/legacy-app DB_JNDI=jdbc/postgresql</pre>
     <h3>0. 準備 (権限周りのセットアップ)</h3>
     <pre>
 # 1. ServiceAccount作成
-oc create sa maintenance-sa -l handson=part2
+oc create sa maintenance-sa
 oc label sa maintenance-sa handson=part2
 
 # 2. Role作成 (Podへのexec/cp権限)
@@ -382,8 +382,7 @@ oc label role pod-exec-role handson=part2
 # 3. RoleBinding作成 (変数使用)
 oc create rolebinding maintenance-binding \
   --role=pod-exec-role \
-  --serviceaccount=${MY_PROJECT}:maintenance-sa \
-  -l handson=part2
+  --serviceaccount=${MY_PROJECT}:maintenance-sa
 oc label rolebinding maintenance-binding handson=part2</pre>
     <h3>1. Base（親）環境の構築</h3>
     <pre>
@@ -653,5 +652,6 @@ done</pre>
 
 </body>
 </html>
+
 
 
