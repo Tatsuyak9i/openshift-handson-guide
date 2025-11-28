@@ -14,7 +14,7 @@ RUN mkdir ROOT && \
 
 # B. テナントごとの設定ファイルを注入
 # (ビルドコンテキストにある application.yaml を展開済みディレクトリに配置)
-COPY application.yaml /deployments/ROOT/WEB-INF/classes/application.yaml
+COPY application.yaml /deployments/ROOT/WEB-INF/classes/application.yml
 
 # 権限を戻す
 USER 185
