@@ -613,7 +613,7 @@ oc logs -l job-name=$(oc get job -l handson=part2 --sort-by=.metadata.creationTi
 oc new-build ${GIT_REPO} --context-dir=multi-tenant-demo/tenant-c --name=tenant-c -l handson=part2,app.kubernetes.io/part-of=clinic-c-system
 oc set triggers bc/tenant-c --from-image=base-app:latest
 
-oc new-app tenant-c --name=app-clinic-c -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=clinic-c-system
+oc new-app tenant-c --name=app-clinic-c -l handson=part2,app.kubernetes.io/part-of=clinic-c-system
 oc create route edge app-clinic-c --service=app-clinic-c
 oc label route app-clinic-c handson=part2 app.kubernetes.io/part-of=clinic-c-system
 
@@ -653,6 +653,7 @@ done</pre>
 
 </body>
 </html>
+
 
 
 
