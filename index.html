@@ -412,7 +412,7 @@ oc start-build base-app --from-file=ROOT.war --follow</pre>
     <pre>
 # --- Tenant A (A病院) ---
 oc new-build ${GIT_REPO} \
-  --context-dir=tenant-a \
+  --context-dir=multi-tenant-demo/tenant-a \
   --name=tenant-a \
   -l handson=part2,app.kubernetes.io/part-of=hospital-a-system
 
@@ -427,7 +427,7 @@ oc label route app-hospital-a handson=part2 app.kubernetes.io/part-of=hospital-a
 
 # --- Tenant B (B薬局) ---
 oc new-build ${GIT_REPO} \
-  --context-dir=tenant-b \
+  --context-dir=multi-tenant-demo/tenant-b \
   --name=tenant-b \
   -l handson=part2,app.kubernetes.io/part-of=pharmacy-b-system
 
@@ -622,7 +622,7 @@ oc logs -l job-name=$(oc get job -l handson=part2 --sort-by=.metadata.creationTi
 
     <pre>
 # 1. 新規テナント(Cクリニック)追加
-oc new-build ${GIT_REPO} --context-dir=tenant-c --name=tenant-c -l handson=part2,app.kubernetes.io/part-of=clinic-c-system
+oc new-build ${GIT_REPO} --context-dir=multi-tenant-demo/tenant-c --name=tenant-c -l handson=part2,app.kubernetes.io/part-of=clinic-c-system
 oc set triggers bc/tenant-c --from-image=base-app:latest
 
 oc new-app tenant-c --name=app-clinic-c -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=clinic-c-system
@@ -665,3 +665,4 @@ done</pre>
 
 </body>
 </html>
+
