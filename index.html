@@ -617,13 +617,13 @@ oc new-app tenant-c --name=app-clinic-c -l handson=part2,app.kubernetes.io/part-
 oc create route edge app-clinic-c --service=app-clinic-c
 oc label route app-clinic-c handson=part2 app.kubernetes.io/part-of=clinic-c-system
 
-# 2. 全テナント一括停止 (緊急メンテ)
-oc scale deployment -l type=tenant-app --replicas=0
-
-# 3. 全テナント一括ログ回収
-for pod in $(oc get pods -l type=tenant-app -o jsonpath='{.items[*].metadata.name}'); do
+# 2. 全テナント一括ログ回収
+for pod in $(oc get pods -l handson=part2 -o jsonpath='{.items[*].metadata.name}'); do
   oc logs $pod > "${pod}.log"
-done</pre>
+done
+
+# 3. 全テナント一括停止 (緊急メンテ)
+oc scale deployment -l handson=part2 --replicas=0</pre>
 </div>
 
 <div class="section-box">
@@ -653,6 +653,7 @@ done</pre>
 
 </body>
 </html>
+
 
 
 
