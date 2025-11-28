@@ -548,19 +548,20 @@ spec:
             - /bin/bash
             - -c
             - |
-              # 1. ダミーの資材(zip)を作成
+              # 1. 書き込み可能な /tmp に移動してダミー作成
+              cd /tmp
               echo "Dummy config data" > config.txt
-              zip config.zip config.txt
               
               # 2. B薬局のPod名を特定
               POD_NAME=\$(oc get pod -l deployment=app-pharmacy-b -o jsonpath='{.items[0].metadata.name}')
               echo "Deploying to \$POD_NAME..."
               
               # 3. ファイルを転送 (oc cp)
-              oc cp config.zip \$POD_NAME:/tmp/config.zip
+              # テキストファイルをそのまま送ります
+              oc cp config.txt \$POD_NAME:/tmp/config.txt
               
               # 4. 配置確認 (oc exec)
-              oc exec \$POD_NAME -- ls -l /tmp/config.zip
+              oc exec \$POD_NAME -- ls -l /tmp/config.txt
               echo "Deployment complete."
       restartPolicy: Never
 EOF
@@ -652,6 +653,7 @@ done</pre>
 
 </body>
 </html>
+
 
 
 
