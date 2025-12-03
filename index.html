@@ -470,7 +470,7 @@ oc label route app-pharmacy-b handson=part2 app.kubernetes.io/part-of=pharmacy-b
 
     <pre>
 # 1. 親だけを更新 (v2 WARを投入)
-oc start-build base-app --from-file=ROOT_v2.war --follow
+oc start-build base-app --from-file=ROOT.war --follow
 
 # 2. 自動連鎖の観察
 oc get builds -w</pre>
@@ -653,6 +653,7 @@ oc scale deployment -l handson=part2 --replicas=0</pre>
 
 </body>
 </html>
+
 
 
 
