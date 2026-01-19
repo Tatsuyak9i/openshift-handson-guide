@@ -374,15 +374,18 @@ oc create sa maintenance-sa
 oc label sa maintenance-sa handson=part2
 
 # 2. Role作成 (Podへのexec/cp権限)
-oc create role pod-exec-role \
+oc create role exec-pods \
   --verb=get,list,create \
   --resource=pods,pods/log,pods/exec
 oc label role pod-exec-role handson=part2
 
 # 3. RoleBinding作成 (変数使用)
 oc create rolebinding maintenance-binding \
-  --role=pod-exec-role \
+  --role=exec-pods \
   --serviceaccount=${MY_PROJECT}:maintenance-sa
+oc create rolebinding maintenance-sa-view \
+  --clusterrole=view \
+  --serviceaccount=tkurebay-dev:maintenance-sa
 oc label rolebinding maintenance-binding handson=part2</pre>
     <h3>1. Base（親）環境の構築</h3>
     <pre>
@@ -653,6 +656,7 @@ oc scale deployment -l handson=part2 --replicas=0</pre>
 
 </body>
 </html>
+
 
 
 
