@@ -408,6 +408,14 @@ oc new-build ${GIT_REPO} \
 
 oc set triggers bc/tenant-a --from-image=base-app:latest
 
+# DB起動
+oc new-app --name=postgresql-tenant-a \
+  --image=registry.redhat.io/rhel8/postgresql-13 \
+  -e POSTGRESQL_USER=dbuser \
+  -e POSTGRESQL_PASSWORD=password \
+  -e POSTGRESQL_DATABASE=sampledb \
+  -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=hospital-a-system
+        
 # アプリ起動 (3つのラベル付与)
 oc new-app tenant-a --name=app-hospital-a \
   -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=hospital-a-system
@@ -423,6 +431,13 @@ oc new-build ${GIT_REPO} \
 
 oc set triggers bc/tenant-b --from-image=base-app:latest
 
+oc new-app --name=postgresql-tenant-b \
+  --image=registry.redhat.io/rhel8/postgresql-13 \
+  -e POSTGRESQL_USER=dbuser \
+  -e POSTGRESQL_PASSWORD=password \
+  -e POSTGRESQL_DATABASE=sampledb \
+  -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=pharmacy-b-system
+        
 # アプリ起動 (3つのラベル付与)
 oc new-app tenant-b --name=app-pharmacy-b \
   -l handson=part2,type=tenant-app,app.kubernetes.io/part-of=pharmacy-b-system
@@ -503,7 +518,7 @@ metadata:
     app.kubernetes.io/part-of: hospital-a-system
 spec:
   schedule: "*/1 * * * *"
-  suspend: true
+  suspend: false
   jobTemplate:
     spec:
       template:
@@ -524,53 +539,38 @@ spec:
           restartPolicy: OnFailure
 EOF
 
-# 停止/開始 (ログが流れるのを確認)
-oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":false}}'
-oc patch cronjob log-checker-hospital-a -p '{"spec":{"suspend":true}}'</pre>
-    
-    <h4>4-3. 資材配置ジョブ (Job + oc cp/exec)</h4>
-    <p>単発のJobが起動し、ターゲットPod内にファイルを転送・配置します。</p>
-    <pre>
-# 資材配置用Job作成
 oc create -f - &lt;&lt;EOF
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
-  generateName: file-deploy-job-
+  name: log-checker-pharmacy-b
   labels:
     handson: part2
     app.kubernetes.io/part-of: pharmacy-b-system
 spec:
-  template:
+  schedule: "*/1 * * * *"
+  suspend: false
+  jobTemplate:
     spec:
-      serviceAccountName: maintenance-sa
-      containers:
-        - name: deployer
-          image: registry.redhat.io/openshift4/ose-cli:latest
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # 1. 書き込み可能な /tmp に移動してダミー作成
-              cd /tmp
-              echo "Dummy config data" > config.txt
-              
-              # 2. B薬局のPod名を特定
-              POD_NAME=\$(oc get pod -l deployment=app-pharmacy-b -o jsonpath='{.items[0].metadata.name}')
-              echo "Deploying to \$POD_NAME..."
-              
-              # 3. ファイルを転送 (oc cp)
-              # テキストファイルをそのまま送ります
-              oc cp config.txt \$POD_NAME:/tmp/config.txt
-              
-              # 4. 配置確認 (oc exec)
-              oc exec \$POD_NAME -- ls -l /tmp/config.txt
-              echo "Deployment complete."
-      restartPolicy: Never
+      template:
+        spec:
+          serviceAccountName: maintenance-sa
+          containers:
+            - name: checker
+              image: registry.redhat.io/openshift4/ose-cli:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  # A病院のPod名を特定
+                  POD_NAME=\$(oc get pod -l deployment=app-hospital-a -o jsonpath='{.items[0].metadata.name}')
+                  echo "Checking logs for \$POD_NAME..."
+                  # 直近のログを表示
+                  oc logs \$POD_NAME --tail=20
+          restartPolicy: OnFailure
 EOF
+</pre>
 
-# Jobの実行ログを確認
-oc logs -l job-name=$(oc get job -l handson=part2 --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')</pre>
 
     <h3>5. Day3運用: テナント追加と一括操作</h3>
     
@@ -656,6 +656,7 @@ oc scale deployment -l handson=part2 --replicas=0</pre>
 
 </body>
 </html>
+
 
 
 
